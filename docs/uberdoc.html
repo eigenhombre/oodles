@@ -2877,8 +2877,8 @@ Clojure, except for the occasional macro).</p>
 <p>In the example, a set of acronyms are presented; each acronym can be
 "expanded" into a phrase which itself may contain other acronyms.
 The program generates random expansions of these acronyms, "bottoming
-out" (base case) at random, though with increasing probability of
-termination for more deeply-nested expressions.</p>
+out" (hitting the base case) at random, though with increasing
+probability of termination for more deeply-nested expressions.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ^{:author &quot;John Jacobsen, adapted from Douglas R. Hofstadter&quot;
       :doc }
   oodles.core)</pre></td></tr><tr><td class="docs"><p>  First, a small macro helps us keep things tidy: <code>defpasta</code> makes a
@@ -3012,12 +3012,15 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
   [expr]
   (-&gt; expr
       (expand 0.9999)
-      normalize))</pre></td></tr><tr><td class="docs"><p>"Unit tests": make sure it doesn't bomb out on any of our acronyms.</p>
+      normalize))</pre></td></tr><tr><td class="docs"><p>"Unit tests": make sure it doesn't bomb out on any of our acronyms.
+Find all the acronyms based on the metadata added by the <code>defpasta</code>
+macro, ensuring each runs to completion.</p>
 </td><td class="codes"><pre class="brush: clojure">(let [nsm (ns-map *ns*)]
   (doseq [[k v] nsm :when (:pasta (meta v))]
     (dotimes [_ 10]
-      (dinner (list k)))))</pre></td></tr><tr><td class="docs"><p>If you use CIDER and want long REPL examples, you have to set
-<code>*print-length*</code> to something bigger than its default.</p>
+      (dinner (list k)))))</pre></td></tr><tr><td class="docs"><p>If, like me, you use Emacs and CIDER and want long REPL examples,
+you have to set <code>*print-length*</code> to something bigger than its
+default.</p>
 </td><td class="codes"><pre class="brush: clojure">(set! *print-length* 1000)</pre></td></tr><tr><td class="docs"><p>Finally, our example:</p>
 </td><td class="codes"><pre class="brush: clojure">(dinner '(LINGUINI))</pre></td></tr><tr><td class="docs"><p>=></p>
 </td><td class="codes"><pre class="brush: clojure">'(lasagne and meatballs, casually heaped onto pasta sauce (including

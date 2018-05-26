@@ -11,8 +11,8 @@ Clojure, except for the occasional macro).
 In the example, a set of acronyms are presented; each acronym can be
 \"expanded\" into a phrase which itself may contain other acronyms.
 The program generates random expansions of these acronyms, \"bottoming
-out\" (base case) at random, though with increasing probability of
-termination for more deeply-nested expressions.
+out\" (hitting the base case) at random, though with increasing
+probability of termination for more deeply-nested expressions.
 "}
   oodles.core)
 
@@ -195,6 +195,8 @@ termination for more deeply-nested expressions.
 
 
 ;; "Unit tests": make sure it doesn't bomb out on any of our acronyms.
+;; Find all the acronyms based on the metadata added by the `defpasta`
+;; macro, ensuring each runs to completion.
 (let [nsm (ns-map *ns*)]
   (doseq [[k v] nsm :when (:pasta (meta v))]
     (dotimes [_ 10]
