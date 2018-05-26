@@ -23,10 +23,11 @@ termination for more deeply-nested expressions.
   function that simply returns the list supplied as its argument,
   avoiding the need for the argument vector or the quote.  Note that
   just one small macro provides enough \"syntactic sugar\" to make the
-  examples more readable.
+  examples more readable.  We also attach metadata for convenience in
+  testing (see below).
   "
   [name_ & expr]
-  `(defn ~name_ []
+  `(defn ~(with-meta name_ {:pasta true}) []
      '~@expr))
 
 
@@ -35,6 +36,10 @@ termination for more deeply-nested expressions.
 ;; important in his output, but commas are whitespace in Clojure... so
 ;; where the symbols are used with commas in compound statements, we
 ;; append `_CO` to tell the program to supply a comma in the output.
+;; We cannot, unfortunately, add commas after lists in this way, but
+;; his example is inconsistent in this regard (three examples have
+;; commas after lists, but the example expansion later in the article
+;; does not).
 ;;
 ;; Hostadter presents the acronyms in capital letters, though
 ;; Common Lisp atoms (analogous to Clojure symbols) are
@@ -42,6 +47,8 @@ termination for more deeply-nested expressions.
 ;; indicate terms which may be expanded... that is to say, the
 ;; `COFFEE` in the expansion of `SAUCE` can itself be expanded to a
 ;; phrase which includes `ESPRESSO`, and so on.
+(defpasta TOMATOES (TOMATOES on MACARONI (and TOMATOES only)
+                             exquisitely SPICED))
 (defpasta MACARONI (MACARONI and CHEESE (a REPAST of Naples_CO Italy)))
 (defpasta REPAST (rather extraordinary PASTA and SAUCE_CO typical))
 (defpasta CHEESE (cheddar_CO havarti_CO, emmentaler
@@ -63,6 +70,7 @@ termination for more deeply-nested expressions.
                                  suppressing sleep outrageously))
 (defpasta BASTA! (belly all stuffed (tummy ache!)))
 (defpasta LAMBCHOPS (LASAGNE and meatballs_CO casually heaped onto PASTA SAUCE))
+(defpasta LASAGNE (LINGUINI and SAUCE and GARLIC (NOODLES everywhere!)))
 (defpasta RHUBARB (RAVIOLI_CO heated under butter and RHUBARB (BASTA!)))
 (defpasta RAVIOLI (RIGATONI and vongole in oil_CO lavishly introduced))
 (defpasta RIGATONI (rich Italian GNOCCHI and TOMATOES (or NOODLES instead)))
@@ -73,21 +81,19 @@ termination for more deeply-nested expressions.
 (defn acronym? [x] (and (symbol? x) (= (name x) (.toUpperCase (name x)))))
 
 
-;; FIXME: This isn't really how he does it, get it closer...
+;; FIXME: This isn't really how he does it, get it closer or explain why...
 (defn strip-comma-and-eval [sym]
   (let [base-symbol-name (-> sym
                              name
                              (clojure.string/replace #"_CO$" "")
                              symbol)
-        pasta-var (some-> *ns*
-                          ns-map
-                          (get (symbol base-symbol-name))
-                          var-get)]
-    (if pasta-var
-      (pasta-var)
-      (list sym))))
+        pasta-var (-> *ns*
+                      ns-map
+                      (get (symbol base-symbol-name))
+                      var-get)]
+    (pasta-var)))
 
-(strip-comma-and-eval 'SAUCI) ;;=> SAUCI
+
 (strip-comma-and-eval 'SAUCE) ;;=> (shad and unusual COFFEE (excellente!))
 (strip-comma-and-eval 'SAUCE_CO) ;;=> (shad and unusual COFFEE (excellente!))
 
@@ -134,6 +140,9 @@ termination for more deeply-nested expressions.
   symbol, if one that would be hard to read back at the REPL); and,
   lower-case all symbols to adhere to the style of the output shown in
   *Metamagical Themas.*
+
+  This bit isn't how Hofstadter's code works, but we need it due to
+  differences between Common Lisp and Clojure.
   "
   [expr]
   (->> expr
@@ -142,41 +151,35 @@ termination for more deeply-nested expressions.
 
 
 
-(defn dinner [expr] (normalize (expand expr 0.99)))
+(defn dinner [expr] (normalize (expand expr 0.99999)))
 
 
-(dinner ())
+;; "unit tests"
+(let [nsm (ns-map *ns*)]
+  (doseq [[k v] nsm :when (:pasta (meta v))]
+    (dotimes [_ 10]
+      (dinner (list k)))))
+
+
+(dinner '(GNOCCHI))
 ;;=>
-()
+'(green and red lasagne and meatballs, casually heaped onto pasta
+sauce (including noodles) gotten usually in northern italy and shad
+and unusual coffee (excellente!) and garlic (noodles everywhere!) and
+meatballs, casually heaped onto pasta sauce (including noodles (oodles
+of delicious linguini) elegantly served) gotten usually in northern
+italy and shad and unusual coffee (excellente!) and green and red
+lasagne in cheese (noodles (oodles of delicious linguini) elegantly
+served (oodles of delicious linguini) elegantly served everywhere!)
+and meatballs, casually heaped onto pasta shad and unusual coffee
+(excellente!) (including noodles (oodles of delicious linguini)
+elegantly served (oodles of delicious linguini) elegantly served
+(oodles of delicious linguini) elegantly served (oodles of delicious
+linguini) elegantly served (oodles of delicious linguini) elegantly
+served) gotten usually in northern italy and sauce and green and red
+linguini and sauce and garlic (noodles everywhere!) in cheese (noodles
+(oodles of delicious linguini) elegantly served (oodles of delicious
+linguini) elegantly served (oodles of delicious linguini) elegantly
+served everywhere!) and meatballs, casually heaped onto pasta and
+sauce (that's all!) and sauce (that's all!) and shad and ...)
 
-(dinner 'MACARONI)
-;;=>
-'macaroni
-
-(dinner '((BASTA!)))
-
-(dinner '(PASTA))
-;;=>
-'(pasta and sauce (that's all!) and sauce (that's all!) and sauce
-(that's all!) and shad and unusual coffee (excellente!) (that's all!)
-and sauce (that's a lucious lunch) and shad and unusual coffee
-(excellente!) (that's a lucious lunch) and shad and unusual coffee
-(excellente!) (that's a lucious lunch) and shad and unusual coffee
-(excellente!) (that's a lucious lunch))
-
-(dinner '(REPAST))
-(dinner '(MACARONI))
-(dinner '(BASTA!))
-
-(dinner '(TOMATOES))
-(dinner '(RIGATONI))
-(dinner '(RHUBARB))
-(dinner '(NOODLES))
-(dinner '(LINGUINI))
-;;=>
-'((lambchops (including (((noodles (oodles of delicious linguini) elegantly served) (oodles of delicious linguini) elegantly served) (oodles of delicious linguini) elegantly served)) gotten usually in northern italy))
-;;=>
-'(((lasagne and meatballs, casually heaped onto pasta sauce) (including noodles) gotten usually in northern italy))
-;;=>
-
-'((that's a lucious lunch) (excellente!) coffee unusual and shad and (that's a lucious lunch) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) sauce and (that's all!) sauce and pasta)
