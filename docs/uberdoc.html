@@ -2895,7 +2895,9 @@ Hofstadter uses, with commas treated differently.  The commas are
 important in his output, but commas are whitespace in Clojure... so
 where the symbols are used with commas in compound statements, we
 append <code>_CO</code> to tell the program to supply a comma in the output.
-We cannot, unfortunately, add commas after lists in this way, but
+(Example: <code>SAUCE,</code> becomes <code>SAUCE_CO</code>.)</p>
+
+<p>We cannot, unfortunately, add commas after lists in this way, but
 his example is inconsistent in this regard (three examples have
 commas after lists, but the example expansion later in the article
 does not).</p>
@@ -2920,7 +2922,7 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
                                   gotten usually in Northern Italy))
 (defpasta PASTA (PASTA and SAUCE (that's ALL!)))
 (defpasta ALL! (a lucious lunch))
-(defpasta SAUCE (shad and unusual COFFEE (excellente!)))
+(defpasta SAUCE (SHAD and unusual COFFEE (excellente!)))
 (defpasta SHAD (SPAGHETTI_CO heated al dente))
 (defpasta SPAGHETTI (standard PASTA_CO always good_CO hot particularly
                               (twist_CO then ingest)))
@@ -2934,23 +2936,41 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
 (defpasta RAVIOLI (RIGATONI and vongole in oil_CO lavishly introduced))
 (defpasta RIGATONI (rich Italian GNOCCHI and TOMATOES (or NOODLES instead)))
 (defpasta GNOCCHI (GARLIC NOODLES over crisp CHEESE_CO heated immediately))
-(defpasta GARLIC (green and red LASAGNE in CHEESE))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn acronym? [x] (and (symbol? x) (= (name x) (.toUpperCase (name x)))))</pre></td></tr><tr><td class="docs"><p>FIXME: This isn't really how he does it, get it closer or explain why...</p>
-</td><td class="codes"><pre class="brush: clojure">(defn strip-comma-and-eval [sym]
+(defpasta GARLIC (green and red LASAGNE in CHEESE))</pre></td></tr><tr><td class="docs"><p>  Hofstadter leaves the implementation of <code>acronym?</code> undefined,
+  since it is so implementation-specific.  In our case, something is
+  an acronym if it's a symbol and its name is equal to an
+  upper case version of ifself.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn acronym?
+  [x]
+  (and (symbol? x) (= (name x) (.toUpperCase (name x)))))</pre></td></tr><tr><td class="docs"><p>  Remove commas from a symbol and evaluate it as a function. This is
+  also very implementation-specific; in our case, it relies on
+  Clojure's machinery for converting symbols to strings and
+  vice-versa, and on the subtle differences between symbols, vars, and
+  functions.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn strip-comma-and-eval
+  [sym]
   (let [base-symbol-name (-&gt; sym
                              name
-                             (clojure.string/replace #&quot;_CO$&quot; )
-                             symbol)
-        pasta-var (-&gt; *ns*
-                      ns-map
-                      (get (symbol base-symbol-name))
-                      var-get)]
-    (pasta-var)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(strip-comma-and-eval 'SAUCE) ;;=&gt; (shad and unusual COFFEE (excellente!))</pre></td></tr><tr><td class="docs"><p>=> (shad and unusual COFFEE (excellente!))</p>
-</td><td class="codes"><pre class="brush: clojure">(strip-comma-and-eval 'SAUCE_CO) ;;=&gt; (shad and unusual COFFEE (excellente!))</pre></td></tr><tr><td class="docs"><p>=> (shad and unusual COFFEE (excellente!))</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn lower [x] (* x x))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn expand [phrase probability]
+                             (clojure.string/replace #&quot;_CO$&quot; &quot;&quot;)
+                             symbol)]
+    ((-&gt; *ns*
+          ns-map
+          (get (symbol base-symbol-name))
+          var-get))))</pre></td></tr><tr><td class="docs"><p>  Reduce the probability by some amount to encourage our recursion to
+  bottom out (and thereby avoid stack overflows).  Hofstadter
+  multiplies probabilities by 0.8, but I simply square the probability
+  so that higher probabilities decrease more slowly than lower ones as
+  the recursion progresses.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn lower
+  [x]
+  (* x x))</pre></td></tr><tr><td class="docs"><p>  This is very similar to <code>expand</code> as presented in the
+  article/book. It includes a bottoming-out clause to accommodate the
+  base case of an empty phrase (since <code>()</code> and <code>nil</code> are not the same
+  in Clojure, as they are in Common Lisp).  Also we use
+  <code>strip-comma-and-eval</code> instead of plain <code>eval</code> to handle the
+  comma-ed symbols.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn expand
+  [phrase probability]
   (cond
     (symbol? phrase) phrase
     (empty? phrase) phrase
@@ -2972,45 +2992,117 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
     (-&gt; x
         name
         (clojure.string/replace #&quot;_CO$&quot; &quot;,&quot;)
-        symbol)))</pre></td></tr><tr><td class="docs"><p>  When we're done expanding our lists of food (and our bellies), we
+        symbol)))</pre></td></tr><tr><td class="docs"><p>  This function accomodates the differences between Common Lisp and
+  Clojure, to make the output similar to what Hofstadter shows in the
+  book.</p>
+
+<p>  When we're done expanding our lists of food (and our bellies), we
   prepare our data for output to the user: turn <code>_CO</code> suffixes into
   actual commas (using the fact that <code>(symbol "x,")</code> yields a valid
   symbol, if one that would be hard to read back at the REPL); and,
   lower-case all symbols to adhere to the style of the output shown in
   <em>Metamagical Themas.</em></p>
-
-<p>  This bit isn't how Hofstadter's code works, but we need it due to
-  differences between Common Lisp and Clojure.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn normalize
   [expr]
   (-&gt;&gt; expr
        (clojure.walk/postwalk get-commas-back)
-       (clojure.walk/postwalk lower-case-symbol)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn dinner [expr] (normalize (expand expr 0.99999)))</pre></td></tr><tr><td class="docs"><p>"unit tests"</p>
+       (clojure.walk/postwalk lower-case-symbol)))</pre></td></tr><tr><td class="docs"><p>  The actual function we'll use to generate our expansions.  Setting a
+  large probability will ensure longer examples.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn dinner
+  [expr]
+  (-&gt; expr
+      (expand 0.9999)
+      normalize))</pre></td></tr><tr><td class="docs"><p>"Unit tests": make sure it doesn't bomb out on any of our acronyms.</p>
 </td><td class="codes"><pre class="brush: clojure">(let [nsm (ns-map *ns*)]
   (doseq [[k v] nsm :when (:pasta (meta v))]
     (dotimes [_ 10]
-      (dinner (list k)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(dinner '(GNOCCHI))</pre></td></tr><tr><td class="docs"><p>=></p>
-</td><td class="codes"><pre class="brush: clojure">'(green and red lasagne and meatballs, casually heaped onto pasta
+      (dinner (list k)))))</pre></td></tr><tr><td class="docs"><p>If you use CIDER and want long REPL examples, you have to set
+<code>*print-length*</code> to something bigger than its default.</p>
+</td><td class="codes"><pre class="brush: clojure">(set! *print-length* 1000)</pre></td></tr><tr><td class="docs"><p>Finally, our example:</p>
+</td><td class="codes"><pre class="brush: clojure">(dinner '(LINGUINI))</pre></td></tr><tr><td class="docs"><p>=></p>
+</td><td class="codes"><pre class="brush: clojure">'(lasagne and meatballs, casually heaped onto pasta sauce (including
+noodles) gotten usually in northern italy and standard pasta, always
+good, hot particularly (twist, then ingest) heated al dente and
+unusual coffee (excellente!) and green and red lasagne in cheese
+(noodles (oodles of delicious linguini) elegantly served (oodles of
+delicious linguini) elegantly served everywhere!) and meatballs,
+casually heaped onto pasta shad and unusual coffee (excellente!)
+(including noodles (oodles of delicious linguini) elegantly served
+(oodles of delicious linguini) elegantly served (oodles of delicious
+linguini) elegantly served (oodles of delicious linguini) elegantly
+served (oodles of delicious lasagne and meatballs, casually heaped
+onto pasta sauce (including noodles) gotten usually in northern italy)
+elegantly served) gotten usually in northern italy and standard pasta
+and shad and unusual coffee (excellente!) (that's all!) and shad and
+unusual coffee (excellente!) (that's all!) always good, hot
+particularly (twist, then ingest) heated al dente and unusual choice
+of fine flavors particularly espresso (excellente!) and green and red
+lasagne in cheese (noodles (oodles of delicious linguini) elegantly
+served (oodles of delicious linguini) elegantly served (oodles of
+delicious linguini) elegantly served (oodles of delicious linguini)
+elegantly served everywhere!) and meatballs, casually heaped onto
+pasta and sauce (that's all!) and sauce (that's all!) and shad and
+unusual coffee (excellente!) (that's all!) sauce (including noodles
+(oodles of delicious linguini) elegantly served (oodles of delicious
+lambchops (including noodles) gotten usually in northern italy)
+elegantly served (oodles of delicious lambchops (including noodles)
+gotten usually in northern italy) elegantly served) gotten usually in
+northern italy and standard pasta and shad and unusual coffee
+(excellente!) (that's all!) and standard pasta, always good, hot
+particularly (twist, then ingest) heated al dente and unusual coffee
+(excellente!) (that's all!) and spaghetti, heated al dente and unusual
+coffee (excellente!) (that's a lucious lunch) and standard pasta,
+always good, hot particularly (twist, then ingest) heated al dente and
+unusual coffee (excellente!) (that's a lucious lunch) always good, hot
+particularly (twist, then ingest) heated al dente and unusual choice
+of fine flavors particularly espresso (excellente!) and green and red
+linguini and sauce and garlic (noodles everywhere!) and meatballs,
+casually heaped onto pasta sauce (including noodles) gotten usually in
+northern italy and spaghetti, heated al dente and unusual coffee
+(excellente!) and green and red lasagne in cheese (noodles (oodles of
+delicious linguini) elegantly served everywhere!) in cheese (noodles
+(oodles of delicious linguini) elegantly served (oodles of delicious
+linguini) elegantly served (oodles of delicious linguini) elegantly
+served (oodles of delicious linguini) elegantly served (oodles of
+delicious linguini) elegantly served (oodles of delicious lambchops
+(including noodles) gotten usually in northern italy) elegantly served
+(oodles of delicious linguini) elegantly served (oodles of delicious
+linguini) elegantly served everywhere!) and meatballs, casually heaped
+onto pasta and shad and unusual coffee (excellente!) (that's a lucious
+lunch) and sauce (that's all!) and spaghetti, heated al dente and
+unusual coffee (excellente!) (that's a lucious lunch) and standard
+pasta and sauce (that's all!) always good, hot particularly (twist,
+then ingest) heated al dente and unusual coffee (excellente!) (that's
+a lucious lunch) shad and unusual choice of fine flavors particularly
+espresso (excellente!) (including noodles (oodles of delicious
+linguini) elegantly served (oodles of delicious linguini) elegantly
+served (oodles of delicious linguini) elegantly served (oodles of
+delicious linguini) elegantly served (oodles of delicious lasagne and
+meatballs, casually heaped onto pasta sauce (including noodles) gotten
+usually in northern italy) elegantly served (oodles of delicious
+lambchops (including noodles) gotten usually in northern italy)
+elegantly served (oodles of delicious linguini and sauce and garlic
+(noodles everywhere!) and meatballs, casually heaped onto pasta sauce
+(including noodles (oodles of delicious linguini) elegantly served)
+gotten usually in northern italy) elegantly served (oodles of
+delicious lambchops (including noodles (oodles of delicious linguini)
+elegantly served) gotten usually in northern italy) elegantly served
+(oodles of delicious lasagne and meatballs, casually heaped onto pasta
 sauce (including noodles) gotten usually in northern italy and shad
 and unusual coffee (excellente!) and garlic (noodles everywhere!) and
 meatballs, casually heaped onto pasta sauce (including noodles (oodles
-of delicious linguini) elegantly served) gotten usually in northern
-italy and shad and unusual coffee (excellente!) and green and red
-lasagne in cheese (noodles (oodles of delicious linguini) elegantly
-served (oodles of delicious linguini) elegantly served everywhere!)
-and meatballs, casually heaped onto pasta shad and unusual coffee
-(excellente!) (including noodles (oodles of delicious linguini)
-elegantly served (oodles of delicious linguini) elegantly served
-(oodles of delicious linguini) elegantly served (oodles of delicious
-linguini) elegantly served (oodles of delicious linguini) elegantly
-served) gotten usually in northern italy and sauce and green and red
-linguini and sauce and garlic (noodles everywhere!) in cheese (noodles
-(oodles of delicious linguini) elegantly served (oodles of delicious
-linguini) elegantly served (oodles of delicious linguini) elegantly
-served everywhere!) and meatballs, casually heaped onto pasta and
-sauce (that's all!) and sauce (that's all!) and shad and ...)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_oodles.core">oodles.core</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+of delicious linguini) elegantly served (oodles of delicious linguini)
+elegantly served) gotten usually in northern italy) elegantly served
+(oodles of delicious linguini and sauce and garlic (noodles
+everywhere!) and meatballs, casually heaped onto pasta sauce
+(including noodles) gotten usually in northern italy and spaghetti,
+heated al dente and unusual coffee (excellente!) and garlic (noodles
+(oodles of delicious linguini) elegantly served everywhere!) and
+meatballs, casually heaped onto pasta sauce (including noodles (oodles
+of delicious linguini) elegantly served (oodles of delicious linguini)
+elegantly served) gotten usually in northern italy) elegantly served)
+gotten usually in northern italy)</pre></td></tr><tr><td class="docs"><p>Man, I'm stuffed!</p>
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_oodles.core">oodles.core</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack
