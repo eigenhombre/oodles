@@ -7,7 +7,7 @@ which is an instructive example on blurring the line between code and
 data, which is typical for Lisp (though somewhat less common in
 Clojure, except for the occasional macro).
 
-Have a look at [the Marginalia document](https://rawgit.com/eigenhombre/oodles/master/docs/uberdoc.html) for a [literate implementation](https://en.wikipedia.org/wiki/Literate_programming) with more details.
+Have a look at [the Marginalia document](https://rawgit.com/eigenhombre/oodles/master/docs/uberdoc.html) for a [literate implementation](https://en.wikipedia.org/wiki/Literate_programming) in [Clojure](https://clojure.org/) with more details.
 
     (pasta and sauce (that's a lucious lunch) and sauce (that's all!) and
     sauce (that's all!) and spaghetti, heated al dente and unusual coffee
