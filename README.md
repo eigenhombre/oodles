@@ -9,9 +9,10 @@ Clojure, except for the occasional macro).
 
 Have a look at [the Marginalia
 document](https://rawgit.com/eigenhombre/oodles/master/docs/uberdoc.html)
-for a (semi) [literate
-implementation](https://en.wikipedia.org/wiki/Literate_programming)
-with more details.  All credit belongs to Dr. Hofstadter; any errors are mine alone.
+for a (semi)
+[literate](https://en.wikipedia.org/wiki/Literate_programming)
+implementation with more details.  All credit belongs to
+Dr. Hofstadter; any errors are mine alone.
 
     (pasta and sauce (that's a lucious lunch) and sauce (that's all!) and
     sauce (that's all!) and spaghetti, heated al dente and unusual coffee
