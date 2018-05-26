@@ -124,11 +124,12 @@ probability of termination for more deeply-nested expressions.
 
 (defn expand
   "
-  This is very similar to `expand` as presented in the
-  article/book. It includes a bottoming-out clause to accommodate the
-  base case of an empty phrase (since `()` and `nil` are not the same
-  in Clojure, as they are in Common Lisp).  Also we use
-  `strip-comma-and-eval` instead of plain `eval` to handle the
+  A significant portion of Hofstadter's article relates to the
+  recursive `expand` function, so I won't go into details here.  This
+  version is very similar to his; it adds a bottoming-out clause to
+  accommodate the base case of an empty phrase (since `()` and `nil`
+  are not the same in Clojure, as they are in Common Lisp).  Also we
+  use `strip-comma-and-eval` instead of plain `eval` to handle the
   comma-ed symbols.
   "
   [phrase probability]

@@ -2963,11 +2963,12 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
   the recursion progresses.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn lower
   [x]
-  (* x x))</pre></td></tr><tr><td class="docs"><p>  This is very similar to <code>expand</code> as presented in the
-  article/book. It includes a bottoming-out clause to accommodate the
-  base case of an empty phrase (since <code>()</code> and <code>nil</code> are not the same
-  in Clojure, as they are in Common Lisp).  Also we use
-  <code>strip-comma-and-eval</code> instead of plain <code>eval</code> to handle the
+  (* x x))</pre></td></tr><tr><td class="docs"><p>  A significant portion of Hofstadter's article relates to the
+  recursive <code>expand</code> function, so I won't go into details here.  This
+  version is very similar to his; it adds a bottoming-out clause to
+  accommodate the base case of an empty phrase (since <code>()</code> and <code>nil</code>
+  are not the same in Clojure, as they are in Common Lisp).  Also we
+  use <code>strip-comma-and-eval</code> instead of plain <code>eval</code> to handle the
   comma-ed symbols.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn expand
   [phrase probability]
