@@ -2,32 +2,46 @@
       :doc "
 In 1983, Douglas R. Hofstadter, author of \"Gödel, Escher, Bach: An
 Eternal Golden Braid\" wrote a series of articles on Lisp in
-Scientific American (later republished as \"Metamagical Themas\"). The
-third and last of these was an entertaining example which is an
-instructive example on blurring the line between code and data, which
-is typical for Lisp (though somewhat less common in Clojure, except
-for the occasional macro).
+Scientific American (later republished as the book *Metamagical Themas*).
+The third and last in the series was an entertaining example
+which is an instructive example on blurring the line between code and
+data, which is typical for Lisp (though somewhat less common in
+Clojure, except for the occasional macro).
+
+In the example, a set of acronyms are presented; each acronym can be
+\"expanded\" into a phrase which itself may contain other acronyms.
+The program generates random expansions of these acronyms, \"bottoming
+out\" (base case) at random, though with increasing probability of
+termination for more deeply-nested expressions.
 "}
   oodles.core)
 
 
 (defmacro defpasta
   "
-  `defpasta` makes a function that return the supplied list, avoiding
-  the need for the argument vector or the quote.  Note that just one
-  small macro provides enough \"syntactic sugar\" to make the examples
-  much more readable.
+  First, a small macro helps us keep things tidy: `defpasta` makes a
+  function that simply returns the list supplied as its argument,
+  avoiding the need for the argument vector or the quote.  Note that
+  just one small macro provides enough \"syntactic sugar\" to make the
+  examples more readable.
   "
   [name_ & expr]
   `(defn ~name_ []
      '~@expr))
 
 
-;; These are the definitions Hofstadter uses, with commas treated
-;; differently.  The commas are important in his output, but commas
-;; are whitespace in Clojure... so where the symbols are used with
-;; commas in compound statements, we append `_CO` to tell the program
-;; to supply a comma in the output.
+;; Next are the actual acronym definitions. These are the definitions
+;; Hofstadter uses, with commas treated differently.  The commas are
+;; important in his output, but commas are whitespace in Clojure... so
+;; where the symbols are used with commas in compound statements, we
+;; append `_CO` to tell the program to supply a comma in the output.
+;;
+;; Hostadter presents the acronyms in capital letters, though
+;; Common Lisp atoms (analogous to Clojure symbols) are
+;; case-insensitive; we follow that convention here and use it to
+;; indicate terms which may be expanded... that is to say, the
+;; `COFFEE` in the expansion of `SAUCE` can itself be expanded to a
+;; phrase which includes `ESPRESSO`, and so on.
 (defpasta MACARONI (MACARONI and CHEESE (a REPAST of Naples_CO Italy)))
 (defpasta REPAST (rather extraordinary PASTA and SAUCE_CO typical))
 (defpasta CHEESE (cheddar_CO havarti_CO, emmentaler
@@ -52,22 +66,14 @@ for the occasional macro).
 (defpasta RHUBARB (RAVIOLI_CO heated under butter and RHUBARB (BASTA!)))
 (defpasta RAVIOLI (RIGATONI and vongole in oil_CO lavishly introduced))
 (defpasta RIGATONI (rich Italian GNOCCHI and TOMATOES (or NOODLES instead)))
-(defpasta GNOCCHI (GARLIC NOODLES over crisp CHEESE, heated immediately))
+(defpasta GNOCCHI (GARLIC NOODLES over crisp CHEESE_CO heated immediately))
 (defpasta GARLIC (green and red LASAGNE in CHEESE))
 
 
-(defn expandable? [x] (and (symbol? x) (= (name x) (.toUpperCase (name x)))))
+(defn acronym? [x] (and (symbol? x) (= (name x) (.toUpperCase (name x)))))
 
 
-(defn get-commas-back [x]
-  (if-not (symbol? x)
-    x
-    (-> x
-        name
-        (clojure.string/replace #"_CO$" ",")
-        symbol)))
-
-
+;; FIXME: This isn't really how he does it, get it closer...
 (defn strip-comma-and-eval [sym]
   (let [base-symbol-name (-> sym
                              name
@@ -79,7 +85,7 @@ for the occasional macro).
                           var-get)]
     (if pasta-var
       (pasta-var)
-      sym)))
+      (list sym))))
 
 (strip-comma-and-eval 'SAUCI) ;;=> SAUCI
 (strip-comma-and-eval 'SAUCE) ;;=> (shad and unusual COFFEE (excellente!))
@@ -94,7 +100,7 @@ for the occasional macro).
     (symbol? phrase) phrase
     (empty? phrase) phrase
 
-    (expandable? (first phrase))
+    (acronym? (first phrase))
     (if (< (rand) probability)
       (concat
        (expand (strip-comma-and-eval (first phrase)) (lower probability))
@@ -111,18 +117,66 @@ for the occasional macro).
     (-> x name .toLowerCase symbol)))
 
 
-(defn normalize [expr]
+(defn get-commas-back [x]
+  (if-not (symbol? x)
+    x
+    (-> x
+        name
+        (clojure.string/replace #"_CO$" ",")
+        symbol)))
+
+
+(defn normalize
+  "
+  When we're done expanding our lists of food (and our bellies), we
+  prepare our data for output to the user: turn `_CO` suffixes into
+  actual commas (using the fact that `(symbol \"x,\")` yields a valid
+  symbol, if one that would be hard to read back at the REPL); and,
+  lower-case all symbols to adhere to the style of the output shown in
+  *Metamagical Themas.*
+  "
+  [expr]
   (->> expr
        (clojure.walk/postwalk get-commas-back)
        (clojure.walk/postwalk lower-case-symbol)))
 
 
 
-
-(normalize (expand '() 0.8))
-(normalize (expand 'MACARONI 0.8))
-(normalize (expand '(PASTA) 0.9999))
-'(pasta and sauce (that's all!) and sauce (that's all!) and shad and unusual coffee (excellente!) (that's a lucious lunch) and shad and unusual coffee (excellente!) (that's a lucious lunch) and sauce (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly excellent, strong, powerful, rich espresso, suppressing sleep outrageously (excellente!) (that's a lucious lunch))
+(defn dinner [expr] (normalize (expand expr 0.99)))
 
 
+(dinner ())
+;;=>
+()
 
+(dinner 'MACARONI)
+;;=>
+'macaroni
+
+(dinner '((BASTA!)))
+
+(dinner '(PASTA))
+;;=>
+'(pasta and sauce (that's all!) and sauce (that's all!) and sauce
+(that's all!) and shad and unusual coffee (excellente!) (that's all!)
+and sauce (that's a lucious lunch) and shad and unusual coffee
+(excellente!) (that's a lucious lunch) and shad and unusual coffee
+(excellente!) (that's a lucious lunch) and shad and unusual coffee
+(excellente!) (that's a lucious lunch))
+
+(dinner '(REPAST))
+(dinner '(MACARONI))
+(dinner '(BASTA!))
+
+(dinner '(TOMATOES))
+(dinner '(RIGATONI))
+(dinner '(RHUBARB))
+(dinner '(NOODLES))
+(dinner '(LINGUINI))
+;;=>
+'((lambchops (including (((noodles (oodles of delicious linguini) elegantly served) (oodles of delicious linguini) elegantly served) (oodles of delicious linguini) elegantly served)) gotten usually in northern italy))
+;;=>
+'(((lasagne and meatballs, casually heaped onto pasta sauce) (including noodles) gotten usually in northern italy))
+;;=>
+
+'((that's a lucious lunch) (excellente!) coffee unusual and shad and (that's a lucious lunch) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) sauce and (that's all!) sauce and pasta)

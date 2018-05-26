@@ -2868,25 +2868,39 @@ net.brehaut.ClojureTools = (function (SH) {
 </script><title>oodles -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">oodles</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br />
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#oodles.core">oodles.core</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#oodles.core" name="oodles.core"><h1 class="project-name">oodles.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>In 1983, Douglas R. Hofstadter, author of "Gödel, Escher, Bach: An
 Eternal Golden Braid" wrote a series of articles on Lisp in
-Scientific American (later republished as "Metamagical Themas"). The
-third and last of these was an entertaining example which is an
-instructive example on blurring the line between code and data, which
-is typical for Lisp (though somewhat less common in Clojure, except
-for the occasional macro).</p>
+Scientific American (later republished as the book <em>Metamagical Themas</em>).
+The third and last in the series was an entertaining example
+which is an instructive example on blurring the line between code and
+data, which is typical for Lisp (though somewhat less common in
+Clojure, except for the occasional macro).</p>
+
+<p>In the example, a set of acronyms are presented; each acronym can be
+"expanded" into a phrase which itself may contain other acronyms.
+The program generates random expansions of these acronyms, "bottoming
+out" (base case) at random, though with increasing probability of
+termination for more deeply-nested expressions.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ^{:author &quot;John Jacobsen, adapted from Douglas R. Hofstadter&quot;
       :doc }
-  oodles.core)</pre></td></tr><tr><td class="docs"><p>  <code>defpasta</code> makes a function that return the supplied list, avoiding
-  the need for the argument vector or the quote.  Note that just one
-  small macro provides enough "syntactic sugar" to make the examples
-  much more readable.</p>
+  oodles.core)</pre></td></tr><tr><td class="docs"><p>  First, a small macro helps us keep things tidy: <code>defpasta</code> makes a
+  function that simply returns the list supplied as its argument,
+  avoiding the need for the argument vector or the quote.  Note that
+  just one small macro provides enough "syntactic sugar" to make the
+  examples more readable.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro defpasta
   [name_ &amp; expr]
   `(defn ~name_ []
-     '~@expr))</pre></td></tr><tr><td class="docs"><p>These are the definitions Hofstadter uses, with commas treated
-differently.  The commas are important in his output, but commas
-are whitespace in Clojure... so where the symbols are used with
-commas in compound statements, we append <code>_CO</code> to tell the program
-to supply a comma in the output.</p>
+     '~@expr))</pre></td></tr><tr><td class="docs"><p>Next are the actual acronym definitions. These are the definitions
+Hofstadter uses, with commas treated differently.  The commas are
+important in his output, but commas are whitespace in Clojure... so
+where the symbols are used with commas in compound statements, we
+append <code>_CO</code> to tell the program to supply a comma in the output.</p>
+
+<p>Hostadter presents the acronyms in capital letters, though
+Common Lisp atoms (analogous to Clojure symbols) are
+case-insensitive; we follow that convention here and use it to
+indicate terms which may be expanded... that is to say, the
+<code>COFFEE</code> in the expansion of <code>SAUCE</code> can itself be expanded to a
+phrase which includes <code>ESPRESSO</code>, and so on.</p>
 </td><td class="codes"><pre class="brush: clojure">(defpasta MACARONI (MACARONI and CHEESE (a REPAST of Naples_CO Italy)))
 (defpasta REPAST (rather extraordinary PASTA and SAUCE_CO typical))
 (defpasta CHEESE (cheddar_CO havarti_CO, emmentaler
@@ -2911,16 +2925,9 @@ to supply a comma in the output.</p>
 (defpasta RHUBARB (RAVIOLI_CO heated under butter and RHUBARB (BASTA!)))
 (defpasta RAVIOLI (RIGATONI and vongole in oil_CO lavishly introduced))
 (defpasta RIGATONI (rich Italian GNOCCHI and TOMATOES (or NOODLES instead)))
-(defpasta GNOCCHI (GARLIC NOODLES over crisp CHEESE, heated immediately))
+(defpasta GNOCCHI (GARLIC NOODLES over crisp CHEESE_CO heated immediately))
 (defpasta GARLIC (green and red LASAGNE in CHEESE))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn expandable? [x] (and (symbol? x) (= (name x) (.toUpperCase (name x)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-commas-back [x]
-  (if-not (symbol? x)
-    x
-    (-&gt; x
-        name
-        (clojure.string/replace #&quot;_CO$&quot; &quot;,&quot;)
-        symbol)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn acronym? [x] (and (symbol? x) (= (name x) (.toUpperCase (name x)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn strip-comma-and-eval [sym]
   (let [base-symbol-name (-&gt; sym
                              name
@@ -2942,26 +2949,59 @@ to supply a comma in the output.</p>
   (cond
     (symbol? phrase) phrase
     (empty? phrase) phrase
-    (expandable? (first phrase))
+    (acronym? (first phrase))
     (if (&lt; (rand) probability)
       (concat
-       (expand (strip-comma-and-eval (first phrase)) (lower probability))
+       (list (expand (strip-comma-and-eval (first phrase)) (lower probability)))
        (expand (rest phrase) probability))
       (cons (first phrase) (expand (rest phrase) probability)))
     :else (cons (expand (first phrase) (lower probability))
-                (expand (rest phrase) (lower probability)))))</pre></td></tr><tr><td class="docs">
+                    (expand (rest phrase) (lower probability)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn lower-case-symbol [x]
   (if-not (symbol? x)
     x
     (-&gt; x name .toLowerCase symbol)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn normalize [expr]
+</td><td class="codes"><pre class="brush: clojure">(defn get-commas-back [x]
+  (if-not (symbol? x)
+    x
+    (-&gt; x
+        name
+        (clojure.string/replace #&quot;_CO$&quot; &quot;,&quot;)
+        symbol)))</pre></td></tr><tr><td class="docs"><p>  When we're done expanding our lists of food (and our bellies), we
+  prepare our data for output to the user: turn <code>_CO</code> suffixes into
+  actual commas (using the fact that <code>(symbol "x,")</code> yields a valid
+  symbol, if one that would be hard to read back at the REPL); and,
+  lower-case all symbols to adhere to the style of the output shown in
+  <em>Metamagical Themas.</em></p>
+</td><td class="codes"><pre class="brush: clojure">(defn normalize
+  [expr]
   (-&gt;&gt; expr
        (clojure.walk/postwalk get-commas-back)
        (clojure.walk/postwalk lower-case-symbol)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(normalize (expand '() 0.8))
-(normalize (expand 'MACARONI 0.8))
-(normalize (expand '(PASTA) 0.9999))
-'(pasta and sauce (that's all!) and sauce (that's all!) and shad and unusual coffee (excellente!) (that's a lucious lunch) and shad and unusual coffee (excellente!) (that's a lucious lunch) and sauce (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly espresso (excellente!) (that's a lucious lunch) and shad and unusual choice of fine flavors particularly excellent, strong, powerful, rich espresso, suppressing sleep outrageously (excellente!) (that's a lucious lunch))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_oodles.core">oodles.core</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</td><td class="codes"><pre class="brush: clojure">(defn dinner [expr] (normalize (expand expr 0.8)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(dinner ())</pre></td></tr><tr><td class="docs"><p>=></p>
+</td><td class="codes"><pre class="brush: clojure">()</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(dinner 'MACARONI)</pre></td></tr><tr><td class="docs"><p>=></p>
+</td><td class="codes"><pre class="brush: clojure">'macaroni
+
+(dinner '((BASTA!)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(dinner '(PASTA))</pre></td></tr><tr><td class="docs"><p>=></p>
+</td><td class="codes"><pre class="brush: clojure">'(pasta and sauce (that's all!) and sauce (that's all!) and sauce
+(that's all!) and shad and unusual coffee (excellente!) (that's all!)
+and sauce (that's a lucious lunch) and shad and unusual coffee
+(excellente!) (that's a lucious lunch) and shad and unusual coffee
+(excellente!) (that's a lucious lunch) and shad and unusual coffee
+(excellente!) (that's a lucious lunch))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(dinner '(REPAST))
+(dinner '(MACARONI))
+(dinner '(BASTA!))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(dinner '(TOMATOES))
+(dinner '(RIGATONI))
+(dinner '(RHUBARB))
+(dinner '(NOODLES))
+(dinner '(LINGUINI))</pre></td></tr><tr><td class="docs"><p>=></p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">'((that's a lucious lunch) (excellente!) coffee unusual and shad and (that's a lucious lunch) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) (excellente!) coffee unusual and shad and (that's all!) sauce and (that's all!) sauce and pasta)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_oodles.core">oodles.core</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack
