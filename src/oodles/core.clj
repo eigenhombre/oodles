@@ -189,9 +189,7 @@ probability of termination for more deeply-nested expressions.
   large probability will ensure longer examples.
   "
   [expr]
-  (-> expr
-      (expand 0.9999)
-      normalize))
+  (normalize (expand expr 0.9999)))
 
 
 ;; "Unit tests": make sure it doesn't bomb out on any of our acronyms.

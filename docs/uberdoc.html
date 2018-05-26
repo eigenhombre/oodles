@@ -3010,9 +3010,7 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
   large probability will ensure longer examples.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn dinner
   [expr]
-  (-&gt; expr
-      (expand 0.9999)
-      normalize))</pre></td></tr><tr><td class="docs"><p>"Unit tests": make sure it doesn't bomb out on any of our acronyms.
+  (normalize (expand expr 0.9999)))</pre></td></tr><tr><td class="docs"><p>"Unit tests": make sure it doesn't bomb out on any of our acronyms.
 Find all the acronyms based on the metadata added by the <code>defpasta</code>
 macro, ensuring each runs to completion.</p>
 </td><td class="codes"><pre class="brush: clojure">(let [nsm (ns-map *ns*)]
