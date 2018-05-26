@@ -1,2 +1,2 @@
 
-Have a look at [the Marginalia document](https://github.com/eigenhombre/oodles/blob/master/docs/uberdoc.html).
+Have a look at [the Marginalia document](https://rawgit.com/eigenhombre/oodles/master/docs/uberdoc.html).
