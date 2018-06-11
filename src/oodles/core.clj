@@ -1,21 +1,46 @@
 (ns ^{:author "John Jacobsen, adapted from Douglas R. Hofstadter"
-      :doc "
-In 1983, Douglas R. Hofstadter, author of \"Gödel, Escher, Bach: An
-Eternal Golden Braid\" wrote a series of articles on Lisp in
-Scientific American (later republished as the book *Metamagical Themas*).
-The third and last in the series was an entertaining example
-which is an instructive example on blurring the line between code and
-data, which is typical for Lisp (though somewhat less common in
-Clojure, except for the occasional macro).
+      :doc " In 1983, Douglas R. Hofstadter, author of \"Gödel,
+Escher, Bach: An Eternal Golden Braid\" wrote a series of articles on
+Lisp in Scientific American (later republished in the book
+*Metamagical Themas*).  The third and last in the series was an
+entertaining example in which lists of words (\"atoms,\" akin to
+Clojure's *symbols*) are transformed recursively; the words in
+question act as both function names and regular English words.
 
-In the example, a set of acronyms are presented; each acronym can be
-\"expanded\" into a phrase which itself may contain other acronyms.
-The program generates random expansions of these acronyms, \"bottoming
-out\" (hitting the base case) at random, though with increasing
-probability of termination for more deeply-nested expressions.
+This technique, in which the line between code and data is blurred, is
+somewhat more common in older, traditional Lisp programs than in
+Clojure (where use of symbols for things other than vars is somewhat
+frowned upon). Such programs can be powerful and expressive, but
+harder to understand.  Examples of Lisp programs written in this way
+can be found in Norvig's *Paradigms of Artificial Intelligence
+Programming - Case Studies in Common Lisp*.
 "}
   oodles.core)
 
+
+;; In this program, a set of acronyms are presented; each acronym can be
+;; "expanded" into a phrase which itself may contain other acronyms.
+;; The program generates random expansions of these acronyms, "bottoming
+;; out" (hitting the base case) at random, though with increasing
+;; probability of termination for more deeply-nested expressions. The
+;; example on the right includes three successive example expansions,
+;; of `TOMATOES`, then `MACARONI`, then `CHEESE`.
+(comment
+  TOMATOES
+
+  (TOMATOES on MACARONI (and TOMATOES only) exquisitely SPICED)
+
+  (TOMATOES on MACARONI and CHEESE (a REPAST of Naples, Italy
+   (and TOMATOES only) exquisitely SPICED))
+
+  (TOMATOES on MACARONI and cheddar, havarti, emmentaler (especially
+  SHARP emmenthaler) (a REPAST of Naples, Italy (and TOMATOES only)
+  exquisitely SPICED))
+
+)
+
+
+;; The actual implementation follows.
 
 (defmacro defpasta
   "

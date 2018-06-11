@@ -2866,22 +2866,44 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>oodles -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">oodles</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br />
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#oodles.core">oodles.core</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#oodles.core" name="oodles.core"><h1 class="project-name">oodles.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>In 1983, Douglas R. Hofstadter, author of "Gödel, Escher, Bach: An
-Eternal Golden Braid" wrote a series of articles on Lisp in
-Scientific American (later republished as the book <em>Metamagical Themas</em>).
-The third and last in the series was an entertaining example
-which is an instructive example on blurring the line between code and
-data, which is typical for Lisp (though somewhat less common in
-Clojure, except for the occasional macro).</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#oodles.core">oodles.core</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#oodles.core" name="oodles.core"><h1 class="project-name">oodles.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p> In 1983, Douglas R. Hofstadter, author of "Gödel,
+Escher, Bach: An Eternal Golden Braid" wrote a series of articles on
+Lisp in Scientific American (later republished in the book
+<em>Metamagical Themas</em>).  The third and last in the series was an
+entertaining example in which lists of words ("atoms," akin to
+Clojure's <em>symbols</em>) are transformed recursively; the words in
+question act as both function names and regular English words.</p>
 
-<p>In the example, a set of acronyms are presented; each acronym can be
+<p>This technique, in which the line between code and data is blurred, is
+somewhat more common in older, traditional Lisp programs than in
+Clojure (where use of symbols for things other than vars is somewhat
+frowned upon). Such programs can be powerful and expressive, but
+harder to understand.  Examples of Lisp programs written in this way
+can be found in Norvig's *Paradigms of Artificial Intelligence
+Programming - Case Studies in Common Lisp*.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns ^{:author &quot;John Jacobsen, adapted from Douglas R. Hofstadter&quot;
+      :doc }
+  oodles.core)</pre></td></tr><tr><td class="docs"><p>In this program, a set of acronyms are presented; each acronym can be
 "expanded" into a phrase which itself may contain other acronyms.
 The program generates random expansions of these acronyms, "bottoming
 out" (hitting the base case) at random, though with increasing
-probability of termination for more deeply-nested expressions.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns ^{:author &quot;John Jacobsen, adapted from Douglas R. Hofstadter&quot;
-      :doc }
-  oodles.core)</pre></td></tr><tr><td class="docs"><p>  First, a small macro helps us keep things tidy: <code>defpasta</code> makes a
+probability of termination for more deeply-nested expressions. The
+example on the right includes three successive example expansions,
+of <code>TOMATOES</code>, then <code>MACARONI</code>, then <code>CHEESE</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(comment
+  TOMATOES
+
+  (TOMATOES on MACARONI (and TOMATOES only) exquisitely SPICED)
+
+  (TOMATOES on MACARONI and CHEESE (a REPAST of Naples, Italy
+   (and TOMATOES only) exquisitely SPICED))
+
+  (TOMATOES on MACARONI and cheddar, havarti, emmentaler (especially
+  SHARP emmenthaler) (a REPAST of Naples, Italy (and TOMATOES only)
+  exquisitely SPICED))
+
+)</pre></td></tr><tr><td class="docs"><p>The actual implementation follows.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>  First, a small macro helps us keep things tidy: <code>defpasta</code> makes a
   function that simply returns the list supplied as its argument,
   avoiding the need for the argument vector or the quote.  Note that
   just one small macro provides enough "syntactic sugar" to make the
