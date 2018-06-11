@@ -38,7 +38,6 @@ Intelligence Programming - Case Studies in Common Lisp*.
 
 )
 
-
 ;; The actual implementation follows.
 
 (defmacro defpasta
@@ -154,7 +153,7 @@ Intelligence Programming - Case Studies in Common Lisp*.
   accommodate the base case of an empty phrase (since `()` and `nil`
   are not the same in Clojure, as they are in Common Lisp).  Also we
   use `strip-comma-and-eval` instead of plain `eval` to handle the
-  comma-ed symbols.
+  symbols with commas.
   "
   [phrase probability]
   (cond

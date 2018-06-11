@@ -2990,7 +2990,7 @@ phrase which includes <code>ESPRESSO</code>, and so on.</p>
   accommodate the base case of an empty phrase (since <code>()</code> and <code>nil</code>
   are not the same in Clojure, as they are in Common Lisp).  Also we
   use <code>strip-comma-and-eval</code> instead of plain <code>eval</code> to handle the
-  comma-ed symbols.</p>
+  symbols with commas.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn expand
   [phrase probability]
   (cond
