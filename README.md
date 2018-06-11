@@ -2,10 +2,10 @@
 In 1983, Douglas R. Hofstadter, author of *Gödel, Escher, Bach: An
 Eternal Golden Braid* wrote a series of articles on Lisp in
 Scientific American (later republished in the book *Metamagical Themas*).
-The third and last in the series was a short, entertaining program
+The third and last in the series contained a short, entertaining program
 which is an instructive example on blurring the line between code and
 data, which is typical for Lisp (though somewhat less common in
-Clojure, except for the occasional macro).
+Clojure).
 
 Have a look at [the Marginalia
 document](https://rawgit.com/eigenhombre/oodles/master/docs/uberdoc.html)
