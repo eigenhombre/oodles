@@ -1,7 +1,7 @@
 
 In 1983, Douglas R. Hofstadter, author of *Gödel, Escher, Bach: An
 Eternal Golden Braid* wrote a series of articles on Lisp in
-Scientific American (later republished as the book *Metamagical Themas*).
+Scientific American (later republished in the book *Metamagical Themas*).
 The third and last in the series was a short, entertaining program
 which is an instructive example on blurring the line between code and
 data, which is typical for Lisp (though somewhat less common in

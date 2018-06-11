@@ -7,13 +7,12 @@ entertaining example in which lists of words (\"atoms,\" akin to
 Clojure's *symbols*) are transformed recursively; the words in
 question act as both function names and regular English words.
 
-This technique, in which the line between code and data is blurred, is
-somewhat more common in older, traditional Lisp programs than in
-Clojure (where use of symbols for things other than vars is somewhat
-frowned upon). Such programs can be powerful and expressive, but
-harder to understand.  Examples of Lisp programs written in this way
-can be found in Norvig's *Paradigms of Artificial Intelligence
-Programming - Case Studies in Common Lisp*.
+Expressions where symbols (atoms) represent both code and data are
+somewhat rare in Clojure, but are more common in older, traditional
+Lisp programs. Such programs can be powerful and expressive, but can
+also be harder to understand.  (Examples of Lisp programs written in
+this way can be found in Norvig's *Paradigms of Artificial
+Intelligence Programming - Case Studies in Common Lisp*.
 "}
   oodles.core)
 
