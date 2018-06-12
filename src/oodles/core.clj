@@ -14,7 +14,9 @@ also be harder to understand.  (Examples of Lisp programs written in
 this way can be found in Norvig's *Paradigms of Artificial
 Intelligence Programming - Case Studies in Common Lisp*.
 "}
-  oodles.core)
+    oodles.core
+  (:require [clojure.walk])
+  (:gen-class))
 
 
 ;; In this program, a set of acronyms are presented; each acronym can be
@@ -127,10 +129,11 @@ Intelligence Programming - Case Studies in Common Lisp*.
                              name
                              (clojure.string/replace #"_CO$" "")
                              symbol)]
-    ((-> *ns*
-          ns-map
-          (get (symbol base-symbol-name))
-          var-get))))
+    ((-> 'oodles.core
+         find-ns
+         ns-map
+         (get (symbol base-symbol-name))
+         var-get))))
 
 
 (defn lower
@@ -227,10 +230,11 @@ Intelligence Programming - Case Studies in Common Lisp*.
 ;; If, like me, you use Emacs and CIDER and want long REPL examples,
 ;; you have to set `*print-length*` to something bigger than its
 ;; default.
-(set! *print-length* 1000)
+(comment
+  (set! *print-length* 1000))
 
 ;; Finally, our example:
-(dinner '(LINGUINI))
+;;(dinner '(LINGUINI))
 ;;=>
 '(lasagne and meatballs, casually heaped onto pasta sauce (including
 noodles) gotten usually in northern italy and standard pasta, always
@@ -316,3 +320,7 @@ elegantly served) gotten usually in northern italy) elegantly served)
 gotten usually in northern italy)
 
 ;; Man, I'm stuffed!
+
+(defn -main [& junk]
+  (println (dinner '(TOMATOES))))
+
