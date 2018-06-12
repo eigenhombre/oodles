@@ -66,7 +66,7 @@ Intelligence Programming - Case Studies in Common Lisp*.
 ;; commas after lists, but the example expansion later in the article
 ;; does not).
 ;;
-;; Hostadter presents the acronyms in capital letters, though
+;; Hofstadter presents the acronyms in capital letters, though
 ;; Common Lisp atoms (analogous to Clojure symbols) are
 ;; case-insensitive; we follow that convention here and use it to
 ;; indicate terms which may be expanded... that is to say, the
