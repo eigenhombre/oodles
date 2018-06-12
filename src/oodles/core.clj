@@ -321,6 +321,7 @@ gotten usually in northern italy)
 
 ;; Man, I'm stuffed!
 
+;; For those who want a tasty treat now and then, we provide the
+;; ability to run using =lein run= or from an überjar.
 (defn -main [& junk]
   (println (dinner '(TOMATOES))))
-
